@@ -9,6 +9,7 @@ import random
 import logging
 import requests
 import multiprocessing
+from requests.auth import HTTPBasicAuth
 
 # User Agent 列表，每次访问随机使用其中一个
 USER_AGENT_LIST = [
@@ -124,11 +125,12 @@ USER_AGENT_LIST = [
 PROXIES_LIST = multiprocessing.Manager().list()
 
 
-def get_html(url, use_proxy=False):
+def get_html(url, use_proxy=False, post_data=None):
     """
     获取URL的源代码
     :param url: 网址
     :param use_proxy: 是否使用代理
+    :param post_data: 是否用post 默认没有就用GET 有数据则POST
     :return: 网页源代码
     """
     attempts = 0
@@ -138,9 +140,15 @@ def get_html(url, use_proxy=False):
             headers = {'user-agent': random.choice(USER_AGENT_LIST)}
             if use_proxy:
                 proxies = {'http': random.choice(PROXIES_LIST)}
-                req = requests.get(url, timeout=20, headers=headers, proxies=proxies)
+                if post_data:
+                    req = requests.post(url, timeout=20, headers=headers, proxies=proxies, data=post_data, auth=HTTPBasicAuth('user', 'pass'))
+                else:
+                    req = requests.get(url, timeout=20, headers=headers, proxies=proxies)
             else:
-                req = requests.get(url, timeout=20, headers=headers)
+                if post_data:
+                    req = requests.post(url, timeout=20, headers=headers, data=post_data, auth=HTTPBasicAuth('user', 'pass'))
+                else:
+                    req = requests.get(url, timeout=20, headers=headers)
             html = req.text
             return html
         except Exception as e:
