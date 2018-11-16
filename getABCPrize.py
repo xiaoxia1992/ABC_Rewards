@@ -6,6 +6,8 @@ from requests.auth import HTTPBasicAuth
 import requests
 import json
 import logging
+import time
+import random
 
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1"
@@ -53,46 +55,64 @@ def run():
     with open('./numbers.txt', 'r') as fr:
         mobile_numbers = fr.readlines()
 
-    for mobile_number in mobile_numbers:
-        for index in range(4):
+    with open('./output.txt', 'a') as all_output, open('./bingo.txt', 'a') as bingo_output:
+        for mobile_number in mobile_numbers:
+            mobile_number = mobile_number.strip()
+            for index in range(4):
 
-            if index == 0:
-                year = '2018'
-                month = '11'
-            elif index == 1:
-                year = '2018'
-                month = '12'
-            elif index == 2:
-                year = '2019'
-                month = '1'
-            else:
-                year = '2019'
-                month = '2'
+                if index == 0:
+                    year = '2018'
+                    month = '11'
+                elif index == 1:
+                    year = '2018'
+                    month = '12'
+                elif index == 2:
+                    year = '2019'
+                    month = '1'
+                else:
+                    year = '2019'
+                    month = '2'
 
-            login_string, cookies = set_login(mobile_number, year, month, DESTINATION)
-            login_data = json.loads(login_string)
+                login_string, cookies = set_login(mobile_number, year, month, DESTINATION)
+                login_data = json.loads(login_string)
 
-            if login_data['nums'] != 3:
-                warning_message = '{0} {1}年{2}月的已被使用，当月剩余次数' \
-                                  '为{3}\n'.format(mobile_number, year, month, login_data['num'])
-                print(warning_message)
-                logging.error(warning_message)
-                continue
+                if login_data['nums'] != 3:
+                    warning_message = '\n{0} {1}年{2}月的已被使用，当月剩余次数' \
+                                      '为{3}\n'.format(mobile_number, year, month, login_data['nums'])
+                    print(warning_message)
+                    logging.error(warning_message)
+                    continue
 
-            uniqid = login_data['uniqid']
+                uniqid = login_data['uniqid']
 
-            with open('./output.txt', 'a') as fa:
                 for i in range(1, 4):
                     lottery_string = lottery(i, uniqid, year, month, DESTINATION, cookies)
                     lottery_data = json.loads(lottery_string)
-                    message = '{0} --- {1}年{2}月得到 {3} 美元' \
-                              '券\n'.format(mobile_number, year, month, lottery_data['msg'])
+                    bonus = lottery_data['msg']
+
+                    sign = ''
+                    if month == '1' or month == '2':
+                        sign = '0'
+
+                    message = '{0} --- {1}-{2}{3}得到 {4} 美元' \
+                              '券'.format(mobile_number, year, sign, month, bonus)
                     print(message)
                     logging.warning(message)
-                    fa.write(message)
+                    all_output.write('{}\n'.format(message))
+
+                    if bonus == 200:
+                        bingo_output.write('{}\n'.format(message))
+
+                    time.sleep(0.4 + random.random())
+
+            print('\n\n')
+            all_output.write('\n\n')
+            logging.warning('\n')
 
 
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s|PID:%(process)d|%(levelname)s: %(message)s',
+                        level=logging.WARNING, filename='./log.txt')
     # mob = '15521390483'
     # yy = '2018'
     # mm = '11'
