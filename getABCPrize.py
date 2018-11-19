@@ -52,14 +52,14 @@ def lottery(postitionindex, uniqid, years, months, destination, cookies):
 
 
 def run():
-    with open('./numbers.txt', 'r') as fr:
+    with open('./深圳联通O粉卡号后半.txt', 'r') as fr:
         mobile_numbers = fr.readlines()
 
-    with open('./output.txt', 'a') as all_output, open('./bingo.txt', 'a') as bingo_output:
-        for mobile_number in mobile_numbers:
+    for mobile_number in mobile_numbers:
+        with open('./深圳联通O粉卡输出.txt', 'a') as all_output, open('./bingo.txt', 'a') as bingo_output:
             mobile_number = mobile_number.strip()
-            for index in range(4):
 
+            for index in range(4):
                 if index == 0:
                     year = '2018'
                     month = '11'
@@ -77,10 +77,11 @@ def run():
                 login_data = json.loads(login_string)
 
                 if login_data['nums'] != 3:
-                    warning_message = '\n{0} {1}年{2}月的已被使用，当月剩余次数' \
-                                      '为{3}\n'.format(mobile_number, year, month, login_data['nums'])
+                    warning_message = '{0}    {1}年{2}月的已被使用，当月剩余次数' \
+                                      '为{3}'.format(mobile_number, year, month, login_data['nums'])
                     print(warning_message)
                     logging.error(warning_message)
+                    time.sleep(0.3)
                     continue
 
                 uniqid = login_data['uniqid']
@@ -102,11 +103,14 @@ def run():
 
                     if bonus == 200:
                         bingo_output.write('{}\n'.format(message))
+                        print('\n\n\n中奖了！！{}\n\n\n'.format(message))
+                        logging.critical('\n\n\n中奖了！！！{}\n\n\n'.format(message))
 
-                    time.sleep(0.4 + random.random())
+                    # time.sleep(1 + 2*random.random())
+                    time.sleep(0.03)
 
-            print('\n\n')
-            all_output.write('\n\n')
+            print('\n')
+            all_output.write('\n')
             logging.warning('\n')
 
 
