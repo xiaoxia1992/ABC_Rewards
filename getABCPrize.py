@@ -52,11 +52,12 @@ def lottery(postitionindex, uniqid, years, months, destination, cookies):
 
 
 def run():
-    with open('./深圳联通米粉卡号1119.txt', 'r') as fr:
+    with open('./jiangmennums.txt', 'r') as fr:
         mobile_numbers = fr.readlines()
+        mobile_numbers = mobile_numbers.split()
 
     for mobile_number in mobile_numbers:
-        with open('./深圳联通米粉卡号输出1119.txt', 'a') as all_output, open('./bingo.txt', 'a') as bingo_output:
+        with open('./江门联通米粉卡号输出1201.txt', 'a') as all_output, open('./bingo.txt', 'a') as bingo_output:
             mobile_number = mobile_number.strip()
 
             for index in range(4):
