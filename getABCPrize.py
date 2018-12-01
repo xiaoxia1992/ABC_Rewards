@@ -59,7 +59,7 @@ def run():
         with open('./江门联通米粉卡号输出1201.txt', 'a') as all_output, open('./bingo.txt', 'a') as bingo_output:
             mobile_number = mobile_number.strip()
 
-            for index in range(3):
+            for index in range(1):
                 if index == 0:
                     year = '2018'
                     month = '12'
