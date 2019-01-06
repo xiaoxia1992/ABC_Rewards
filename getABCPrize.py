@@ -154,6 +154,10 @@ def run():
                                                         sys.argv[2], sys.argv[3]))
 
     for mobile_number in mobile_numbers:
+        if mobile_number == '':
+            continue
+        if mobile_number[0] != '1':
+            continue
         with open('{0}{1}'.format(NUM_FILE[:-4], '输出.txt'), 'a') as all_output, \
                 open(BINGO_FILE, 'a') as bingo_output:
 
