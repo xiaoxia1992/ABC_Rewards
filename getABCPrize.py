@@ -9,21 +9,35 @@ import logging
 import time
 import re
 import sys
+import smtplib
+from email.mime.text import MIMEText
 
-if len(sys.argv) == 4:
-    NUM_FILE = './num/{0}{1}联通{2}.txt'.format(sys.argv[2], sys.argv[3],
-                                              time.strftime("%Y%m%d", time.localtime()))
-    BINGO_FILE = './{0}{1}中奖纪录{2}.txt'.format(sys.argv[2], sys.argv[3], time.strftime("%Y%m%d", time.localtime()))
+
+if len(sys.argv) == 5:
+    if sys.argv[1] == 'r':
+        NUM_FILE = './num/{0}{1}联通{2}.txt'.format(sys.argv[3], sys.argv[4],
+                                                  time.strftime("%Y%m%d%H", time.localtime()))
+        BINGO_FILE = './bingo/{0}{1}联通中奖纪录{2}.txt'.format(sys.argv[3], sys.argv[4],
+                                                          time.strftime("%Y%m%d%H", time.localtime()))
+
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1"
 HEADERS = {'user-agent': USER_AGENT}
 DESTINATION = '%E4%B8%AD%E5%9B%BD%E9%A6%99%E6%B8%AF'
 
-# def get_cookies():
-#     request_url = 'https://abc.uncle-ad.com/abcluckydrew_newmarch/'
-#     headers = {'user-agent': USER_AGENT}
-#     req = requests.get(request_url, auth=HTTPBasicAuth('user', 'pass'), headers=headers)
-#     print(req.cookies)
+
+def send_email(msg):
+    smtp = smtplib.SMTP()
+    smtp.connect('smtp.163.com:25')
+    username = 'paddyfu@163.com'
+    password = 'airlemon1'
+    smtp.login(username, password)
+    mail = MIMEText(msg)
+    mail['Subject'] = '连月中奖通知'
+    mail['From'] = username
+    mail['To'] = 'lemonjush@163.com'
+    smtp.sendmail(username, 'lemonjush@163.com', mail.as_string())
+    smtp.quit()
 
 
 def find_district_code(province, city):
@@ -45,7 +59,7 @@ def find_district_code(province, city):
         return '', '', ''
 
 
-def achieve_num(province_code, city_code, group_num):
+def achieve_chu_num(province_code, city_code, group_num):
     url = "https://m.10010.com/NumApp/NumberCenter/qryNum?callback=jsonp_queryMoreNums&provinceCode={0}&" \
           "cityCode={1}&monthFeeLimit=0&groupKey={2}&searchCategory=3&net=01&amounts=200&codeTypeCode=&" \
           "searchValue=&qryType=02&goodsNet=4".format(province_code, city_code, group_num)
@@ -59,7 +73,7 @@ def achieve_num(province_code, city_code, group_num):
     return result
 
 
-def run_num(times, province, city):
+def run_chu_num(times, province, city):
     province_code, city_code, group_num = find_district_code(province, city)
 
     if province_code == '':
@@ -68,7 +82,7 @@ def run_num(times, province, city):
     all_num_set = set()
     for i in range(times):
         try:
-            new_nums = achieve_num(province_code, city_code, group_num)
+            new_nums = achieve_chu_num(province_code, city_code, group_num)
         except Exception as e:
             login_error_message = '第{0}轮号码获取失败, 跳过: {1}'.format(i, e)
             print(login_error_message)
@@ -77,18 +91,31 @@ def run_num(times, province, city):
         
         all_num_set = all_num_set | new_nums
         print('正在获取号码：第 {0} 轮, 共 {1} 轮'.format(i+1, times))
-        time.sleep(1)
+        time.sleep(0.03)
     print('\n\n')
     all_num_list = list(all_num_set)
     all_num_list.sort()
 
     with open(NUM_FILE, 'a') as fa:
         for i, num in enumerate(all_num_list):
-            if i == len(all_num_list):
-                fa.write('num')
+            if i == len(all_num_list) - 1:
+                fa.write(num)
             else:
                 fa.write('{}\n'.format(num))
     return 'ok'
+
+
+def init_empty_nums(front_six_num):
+    first_num = '{}00001'.format(front_six_num)
+    final_num = '{}99999'.format(front_six_num)
+    file_name = './num/{}.txt'.format(front_six_num)
+    with open(file_name, 'w') as fw:
+        for i in range(int(first_num), int(final_num)):
+            if i == int(final_num) - 1:
+                fw.write(str(i))
+            else:
+                fw.write('{}\n'.format(str(i)))
+    return file_name
 
 
 def set_login(mobile, years, months, destination):
@@ -101,7 +128,8 @@ def set_login(mobile, years, months, destination):
     request_url = 'https://abc.uncle-ad.com/abcluckydrew_newmarch/service/operAction.php?action=setLogin'
     for i in range(5):        
         try:
-            r = requests.post(request_url, data=post_data, auth=HTTPBasicAuth('user', 'pass'), headers=HEADERS, timeout=2)
+            r = requests.post(request_url, data=post_data, auth=HTTPBasicAuth('user', 'pass'),
+                              headers=HEADERS, timeout=2)
             response = r.text
             cookies = r.cookies
             if response.strip() != '':
@@ -146,20 +174,32 @@ def lottery(position_index, uni_qid, years, months, destination, cookies):
     return ''
 
 
-def run():
-    with open(NUM_FILE, 'r') as fr, open(BINGO_FILE, 'a') as bingo_output:
+def run(file=''):
+    if file:
+        num_file = file
+        bingo_file = './bingo/{}中奖记录.txt'.format(file[6:-4])
+        output_file = '{}输出.txt'.format(file[:-4])
+    else:
+        num_file = NUM_FILE
+        bingo_file = BINGO_FILE
+        output_file = '{}输出.txt'.format(NUM_FILE[:-4])
+
+    with open(num_file, 'r') as fr, open(bingo_file, 'a') as bingo_output:
         # mobile_numbers = fr.readline().split()
         mobile_numbers = fr.readlines()
-        bingo_output.write('\n---{0} {1}{2}\n'.format(time.strftime("%Y.%m.%d", time.localtime()),
-                                                        sys.argv[2], sys.argv[3]))
+        if sys.argv[1] == 'r':
+            bingo_output.write('\n---{0} {1}{2}\n'.format(time.strftime("%Y.%m.%d.%H", time.localtime()),
+                                                          sys.argv[3], sys.argv[4]))
+        if sys.argv[1] == 'e':
+            bingo_output.write('\n---{0} {1}\n'.format(time.strftime("%Y.%m.%d.%H", time.localtime()), sys.argv[2]))
 
     for mobile_number in mobile_numbers:
         if mobile_number == '':
             continue
         if mobile_number[0] != '1':
             continue
-        with open('{0}{1}'.format(NUM_FILE[:-4], '输出.txt'), 'a') as all_output, \
-                open(BINGO_FILE, 'a') as bingo_output:
+        with open(output_file, 'a') as all_output, \
+                open(bingo_file, 'a') as bingo_output:
 
             mobile_number = mobile_number.strip()
 
@@ -177,14 +217,20 @@ def run():
                 if login_string == '':
                     continue
 
-                login_data = json.loads(login_string)
+                try:
+                    login_data = json.loads(login_string)
+                except Exception as e:
+                    login_error_message = '{0} 19年{1}月 login json载入失败: {2}'.format(mobile_number, month, e)
+                    print(login_error_message)
+                    logging.error(login_error_message)
+                    continue
 
                 if login_data['nums'] != 3:
                     warning_message = '{0}    {1}年{2}月的已被使用，当月剩余次数' \
                                       '为{3}'.format(mobile_number, year, month, login_data['nums'])
                     print(warning_message)
                     logging.error(warning_message)
-                    time.sleep(0.3)
+                    time.sleep(0.01)
                     continue
 
                 uniqid = login_data['uniqid']
@@ -213,15 +259,20 @@ def run():
                         print('\n\n200刀中奖 {}\n\n'.format(message))
                         logging.critical('\n\n200刀中奖 {}\n\n'.format(message))
 
-                        if bonus_flag > 0:
+                        if bonus_flag > 0 and index == 1:
                             bingo_output.write('连月中奖！\n')
                             print('\n\n\n连月中奖了！！{}\n\n\n'.format(message))
                             logging.critical('\n\n\n连月中奖了！！！{}\n\n\n'.format(message))
 
+                            if sys.argv[1] == 'r':
+                                send_email('{0} {1}{2} 连月中奖了'.format(mobile_number, sys.argv[3], sys.argv[4]))
+                            else:
+                                send_email('{} (空号) 连月中奖了'.format(mobile_number))
+
                         bonus_flag += 1
 
                     # time.sleep(1 + 2*random.random())
-                    time.sleep(0.015)
+                    time.sleep(0.01)
 
             print('\n')
             all_output.write('\n')
@@ -229,12 +280,32 @@ def run():
 
 
 if __name__ == '__main__':
-    if not len(sys.argv) == 4:
-        print('\n参数1: 刷多少号码(x100) 参数2: 省份名 参数3: 城市名(直辖市就打两次)\n'
-              '例: python3 getABCPrize.py 30 北京 北京\n')
+    if len(sys.argv) == 1:
+        print('\n参数1 模式:e为空号循环 r为真实联通\n'
+              '    若为r:\n'
+              '        参数2: 刷多少号码(x100) 参数3: 省份名 参数4: 城市名(直辖市就打两次)\n'
+              '        例: python3 getABCPrize.py r 30 北京 北京\n'
+              '    若为e:\n'
+              '        参数2: 输入空号号段的头6位数\n'
+              '        例: python3 getABCPrice.py e 145999\n')
     else:
-        logging.basicConfig(format='%(asctime)s|PID:%(process)d|%(levelname)s: %(message)s', level=logging.WARNING, filename='./log/{0}{1}log{2}.txt'.format(sys.argv[2], sys.argv[3], time.strftime("%Y%m%d", time.localtime())))
+        if sys.argv[1] == 'r':
+            logging.basicConfig(format='%(asctime)s|PID:%(process)d|%(levelname)s: %(message)s', level=logging.WARNING,
+                                filename='./log/{0}{1}联通log{2}.txt'.format(sys.argv[3], sys.argv[4],
+                                                                           time.strftime("%Y%m%d%H", time.localtime())))
+            status = run_chu_num(int(sys.argv[2]), sys.argv[3], sys.argv[4])
+            if status == 'ok':
+                run()
 
-        status = run_num(int(sys.argv[1]), sys.argv[2], sys.argv[3])
-        if status == 'ok':
-            run()
+        elif sys.argv[1] == 'e':
+            logging.basicConfig(format='%(asctime)s|PID:%(process)d|%(levelname)s: %(message)s', level=logging.WARNING,
+                                filename='./log/{0}log{1}.txt'.format(sys.argv[2],
+                                                                      time.strftime("%Y%m%d%H", time.localtime())))
+            if len(sys.argv[2]) == 6:
+                FILE_NAME = init_empty_nums(sys.argv[2])
+                run(FILE_NAME)
+            else:
+                print('参数2输入有误, 需要输入号段头6位数字')
+
+        else:
+            print('参数1输入有误, 只能为e或r')
