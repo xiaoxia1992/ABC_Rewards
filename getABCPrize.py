@@ -225,6 +225,9 @@ def run(file=''):
                     logging.error(login_error_message)
                     continue
 
+                if not 'nums' in login_data.keys():
+                    continue
+
                 if login_data['nums'] != 3:
                     warning_message = '{0}    {1}年{2}月的已被使用，当月剩余次数' \
                                       '为{3}'.format(mobile_number, year, month, login_data['nums'])
