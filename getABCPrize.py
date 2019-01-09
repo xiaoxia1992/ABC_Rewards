@@ -267,10 +267,16 @@ def run(file=''):
                             print('\n\n\n连月中奖了！！{}\n\n\n'.format(message))
                             logging.critical('\n\n\n连月中奖了！！！{}\n\n\n'.format(message))
 
-                            if sys.argv[1] == 'r':
-                                send_email('{0} {1}{2} 连月中奖了'.format(mobile_number, sys.argv[3], sys.argv[4]))
-                            else:
-                                send_email('{} (空号) 连月中奖了'.format(mobile_number))
+                            try:
+                                if sys.argv[1] == 'r':
+                                    send_email('{0} {1}{2} 连月中奖了'.format(mobile_number, sys.argv[3], sys.argv[4]))
+                                else:
+                                    send_email('{} (空号) 连月中奖了'.format(mobile_number))
+                            except Exception as e:
+                                print('发邮件的问题: 号码:{0} 错误:{1}'.format(mobile_number, e))
+                                logging.error('发邮件的问题: 号码:{0} 错误:{1}'.format(mobile_number, e))
+                                continue
+                            
 
                         bonus_flag += 1
 
