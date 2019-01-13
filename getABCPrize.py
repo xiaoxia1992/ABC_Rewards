@@ -63,6 +63,14 @@ def achieve_chu_num(province_code, city_code, group_num):
     url = "https://m.10010.com/NumApp/NumberCenter/qryNum?callback=jsonp_queryMoreNums&provinceCode={0}&" \
           "cityCode={1}&monthFeeLimit=0&groupKey={2}&searchCategory=3&net=01&amounts=200&codeTypeCode=&" \
           "searchValue=&qryType=02&goodsNet=4".format(province_code, city_code, group_num)
+
+    url2 = "https://m.10010.com/NumApp/NumberCenter/qryNum?callback=jsonp_vwkgzbdlkt&provinceCode={0}&" \
+           "cityCode={1}&monthFeeLimit=0&searchCategory=3&net=01&amounts=200&codeTypeCode=&searchValue=&" \
+           "qryType=02&goodsNet=4&goodsId=981805170635&channel=mall".format(province_code, city_code)
+
+    ali_url = "https://wt.tmall.com/trade/detail/itemOp.do?itemId=39990583842&skuId=0&provId=110000&" \
+              "cityId=110100&planId=22317&maxCount=30&network=WCDMA&m=SelectNum"
+
     r = requests.post(url, headers=HEADERS, timeout=3)
     response = r.text
     match = re.findall('[0-9]{11}', response)
@@ -84,7 +92,7 @@ def run_chu_num(times, province, city):
         try:
             new_nums = achieve_chu_num(province_code, city_code, group_num)
         except Exception as e:
-            login_error_message = '第{0}轮号码获取失败, 跳过: {1}'.format(i, e)
+            login_error_message = '第{0}轮号码获取失败, 跳过: {1}'.format(i+1, e)
             print(login_error_message)
             logging.error(login_error_message)
             continue
