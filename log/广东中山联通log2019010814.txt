@@ -1,0 +1,2 @@
+2019-01-08 14:26:49,822|PID:2844|ERROR: 第285轮号码获取失败, 跳过: HTTPSConnectionPool(host='m.10010.com', port=443): Read timed out. (read timeout=3)
+2019-01-08 14:26:59,938|PID:2844|ERROR: 第292轮号码获取失败, 跳过: HTTPSConnectionPool(host='m.10010.com', port=443): Read timed out. (read timeout=3)
