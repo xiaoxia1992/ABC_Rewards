@@ -186,11 +186,11 @@ def run(file=''):
     if file:
         num_file = file
         bingo_file = './bingo/{}中奖记录.txt'.format(file[6:-4])
-        output_file = '{}输出.txt'.format(file[:-4])
+        # output_file = '{}输出.txt'.format(file[:-4])
     else:
         num_file = NUM_FILE
         bingo_file = BINGO_FILE
-        output_file = '{}输出.txt'.format(NUM_FILE[:-4])
+        # output_file = '{}输出.txt'.format(NUM_FILE[:-4])
 
     with open(num_file, 'r') as fr, open(bingo_file, 'a') as bingo_output:
         # mobile_numbers = fr.readline().split()
@@ -206,9 +206,7 @@ def run(file=''):
             continue
         if mobile_number[0] != '1':
             continue
-        with open(output_file, 'a') as all_output, \
-                open(bingo_file, 'a') as bingo_output:
-
+        with open(bingo_file, 'a') as bingo_output:
             mobile_number = mobile_number.strip()
 
             bonus_flag = 0
@@ -263,7 +261,7 @@ def run(file=''):
                               '券'.format(mobile_number, year, sign, month, bonus)
                     print(message)
                     logging.warning(message)
-                    all_output.write('{}\n'.format(message))
+                    # all_output.write('{}\n'.format(message))
 
                     if bonus == 200:
                         bingo_output.write('{}\n'.format(message))
@@ -292,7 +290,7 @@ def run(file=''):
                     time.sleep(0.01)
 
             print('\n')
-            all_output.write('\n')
+            # all_output.write('\n')
             logging.warning('\n')
 
 
