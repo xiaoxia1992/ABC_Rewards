@@ -312,6 +312,9 @@ class Rewards:
                 continue
 
             if visa_login_data['nums'] != 3:
+                if self.history_flag == 1:
+                    continue
+
                 self.history_flag += 1
                 warning_message = '{0}    {1}年{2}月的 VISA 已被使用，当月剩余次数' \
                                   '为{3}'.format(mobile_number, year, month, visa_login_data['nums'])
