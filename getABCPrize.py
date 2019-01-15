@@ -320,6 +320,7 @@ class Rewards:
 
                 if self.try_flag == 1:
                     continue
+                self.try_flag += 1
 
                 visa_prize_list_string = visa_get_prize_list(cookies)
 
@@ -365,7 +366,6 @@ class Rewards:
                         continue
                 continue
 
-            self.try_flag += 1
             uni_qid = visa_login_data['uniqid']
             for i in range(1, 4):
                 visa_lottery_string = visa_lottery(i, uni_qid, year, month, DESTINATION, cookies)
